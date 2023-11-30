@@ -23,9 +23,9 @@ ws.on("open", () => {
     const diff = now - sendTs / 1000;
     sizeSum += size;
 
-    console.log(
-      `BandWidth: ${(size / diff) * 1000}MB/s,time:${diff}, size:${size}MB`
-    );
+    // console.log(
+    //   `BandWidth: ${(size / diff) * 1000}MB/s,time:${diff}, size:${size}MB`
+    // );
   });
 
   setInterval(() => {

@@ -42,7 +42,7 @@ std::vector<char> generate_random_data(std::size_t size)
     return data;
 }
 
-std::vector<char> binaryData = generate_random_data(20 * 1024 * 1024);
+std::vector<char> binaryData = generate_random_data(40 * 1024 * 1024);
 
 // Define a callback to handle incoming messages
 void on_message(server *s, websocketpp::connection_hdl hdl, message_ptr msg)
