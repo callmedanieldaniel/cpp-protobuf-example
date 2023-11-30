@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebSocket Example</title>
+  </head>
+  <body>
+    <h1>WebSocket Example</h1>
+    <div id="messages"></div>
+    <input type="text" id="messageInput" placeholder="Type your message" />
+    <button onclick="sendMessage()">Send</button>
+
+    <!-- <script src="websocket-example.js"></script> -->
+
+    <script>
+      // WebSocket connection URL
+      const socketUrl = "ws://localhost:9002";
+
+      // Create a WebSocket object
+      const socket = new WebSocket(socketUrl);
+
+      // DOM elements
+      const messagesDiv = document.getElementById("messages");
+      const messageInput = document.getElementById("messageInput");
+
+      // Event listener for when the WebSocket connection is open
+      socket.addEventListener("open", (event) => {
+        console.log("WebSocket connection opened:", event);
+        setInterval(() => {
+          sendMessage();
+        }, 1000);
+      });
+
+      // Event listener for receiving messages from the WebSocket server
+      socket.addEventListener("message", (event) => {
+        const message = event.data;
+        displayMessage(message);
+      });
+
+      // Event listener for when an error occurs
+      socket.addEventListener("error", (event) => {
+        console.error("WebSocket error:", event);
+      });
+
+      // Event listener for when the WebSocket connection is closed
+      socket.addEventListener("close", (event) => {
+        console.log("WebSocket connection closed:", event);
+      });
+
+      // Function to send a message to the WebSocket server
+      function sendMessage(msg = 1) {
+        const message = messageInput.value || msg;
+        socket.send(message);
+        // displayMessage(`You: ${message}`);
+        messageInput.value = "";
+      }
+
+      function blobToDataView(blob) {
+        return new Promise((resolve, reject) => {
+          const fileReader = new FileReader();
+
+          fileReader.onload = function (event) {
+            const arrayBuffer = event.target.result;
+            const dataView = new DataView(arrayBuffer);
+            resolve(dataView);
+          };
+
+          fileReader.onerror = function (event) {
+            reject(event.target.error);
+          };
+
+          fileReader.readAsArrayBuffer(blob);
+        });
+      }
+
+      let sizeSum = 0;
+      let lastTs = Date.now();
+      // Function to display a message in the UI
+      function displayMessage(data) {
+        const now = Date.now();
+        const MB = 1 * 1024 * 1024;
+        const size = data.size / MB;
+        const bt = data.slice(0, 8);
+        blobToDataView(bt).then((view) => {
+          // 使用DataView读取64位有符号整数
+          const bigInt = view.getBigInt64(0, true);
+          const sendTs = Number(bigInt.toString());
+          const diff = now - sendTs / 1000;
+
+          sizeSum += size;
+          console.log(
+            `BandWidth: ${
+              (size / diff) * 1000
+            }MB/s,time:${diff}, size:${size}MB`
+          );
+        });
+        // const messageElement = document.createElement("p");
+        // messageElement.textContent = message;
+        // messagesDiv.appendChild(messageElement);
+      }
+
+      setInterval(() => {
+        const now = Date.now();
+        const bw = (sizeSum / (now - lastTs)) * 1000;
+        lastTs = now;
+        sizeSum = 0;
+        console.log("--- all messagesize bandwidth ", bw);
+      }, 1000);
+    </script>
+  </body>
+</html>
