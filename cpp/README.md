@@ -16,6 +16,10 @@ g++ -std=c++11 -o httpserver httpserver.cpp ./proto/news.pb.cc `pkg-config --cfl
 
 ## websocket Compilation
 
-g++ -std=c++11 -o websocket_server websocket_server.cpp -lwebsocketpp -lpthread
+g++ -std=c++11 -o websocket_server continious_send_server.cpp -lwebsocketpp -lpthread
 
 protoc example.proto -o example.desc
+
+## 更新 cpp 代码并打包
+rm -rf build/ && mkdir build && cd build && cmake .. && make && ./server
+

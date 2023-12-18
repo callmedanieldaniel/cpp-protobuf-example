@@ -14,7 +14,7 @@ find_package(Threads REQUIRED)
 
 include_directories( /opt/homebrew/Cellar/websocketpp/0.8.2)
 
-add_executable(server server.cpp)
+add_executable(server continious_send_server.cpp)
 
 target_link_libraries(server
     Threads::Threads

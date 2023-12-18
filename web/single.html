@@ -12,7 +12,7 @@
 
     <script>
       // WebSocket connection URL
-      const socketUrl = "ws://localhost:3000";
+      const socketUrl = "ws://localhost:9002";
 
       let sizeSum = 0;
       let lastTs = Date.now();
@@ -21,7 +21,8 @@
       function createOneWebsocket(socketName) {
         const socket = new WebSocket(socketUrl);
         socket.addEventListener("open", (event) => {
-          console.log("WebSocket connection opened:", event);
+          console.log("CONNECTED", event);
+          socket.send("WEB MESSAGE!!");
         });
 
         socket.addEventListener("message", (event) => {
@@ -59,6 +60,7 @@
 
         // Function to display a message in the UI
         function displayMessage(data) {
+          console.log('displayMessage: ', data);
           const now = Date.now();
           const MB = 1 * 1024 * 1024;
           const size = data.size / MB;
@@ -67,7 +69,7 @@
             // 使用DataView读取64位有符号整数
             const bigInt = view.getBigInt64(0, true);
             const sendTs = Number(bigInt.toString());
-            const diff = now - sendTs
+            const diff = now - sendTs;
             console.log(`speed:`, cnt, diff, (size / diff) * 1000);
             cnt++;
             sizeSum += size;
