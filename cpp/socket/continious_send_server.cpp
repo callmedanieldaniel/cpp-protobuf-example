@@ -6,6 +6,9 @@
 #include <vector>
 #include <vector>
 #include <chrono>
+#include <thread>
+#include <future>
+#include <atomic>
 
 typedef websocketpp::server<websocketpp::config::asio> server;
 
@@ -44,9 +47,13 @@ std::vector<char> generate_random_data(std::size_t size)
 
 std::vector<char> binaryData = generate_random_data(40 * 1024 * 1024);
 
+static const size_t MAX_BUFFER_SIZE = 1024;
+
 // Define a callback to handle incoming messages
 void sendOne(server *s, websocketpp::connection_hdl hdl)
 {
+    std::atomic<bool> send_complete_;
+
     auto now = std::chrono::system_clock::now();
     // 转换为 time_t（自 1970 年 1 月 1 日以来的秒数）
     std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
@@ -63,8 +70,9 @@ void sendOne(server *s, websocketpp::connection_hdl hdl)
     try
     {
         s->send(hdl, sendBuffer.data(), sendBuffer.size(), websocketpp::frame::opcode::BINARY);
-        std::cout << " send message: " << sendBuffer.size()
-                  << std::endl;
+        std::cout
+            << " send message: " << sendBuffer.size()
+            << std::endl;
     }
     catch (websocketpp::exception const &e)
     {
@@ -73,20 +81,35 @@ void sendOne(server *s, websocketpp::connection_hdl hdl)
     }
 }
 
-void on_message(server *s, websocketpp::connection_hdl hdl, message_ptr msg)
+void loopsend(server *s, websocketpp::connection_hdl hdl)
 {
-    std::chrono::seconds interval(10);
-
-    std::cout << "on_message " << hdl.lock().get()
-              << " and message: " << msg->get_payload()
-              << std::endl;
     while (true)
     {
+        auto con = s->get_con_from_hdl(hdl);
+        size_t bufferedAmount = con->get_buffered_amount();
+        if (bufferedAmount < MAX_BUFFER_SIZE)
+        {
+            std::cout
+                << "---bufferedAmount: " << bufferedAmount
+                << std::endl;
 
-        sendOne(s, hdl);
-        // 等待一段时间
-        std::this_thread::sleep_for(interval);
+            sendOne(s, hdl);
+        }
     }
+
+    // for (size_t i = 0; i < 10; i++)
+    // {
+    //     sendOne(s, hdl);
+    //     std::this_thread::sleep_for(std::chrono::seconds(8));
+    // }
+}
+
+void on_message(server *s, websocketpp::connection_hdl hdl, message_ptr msg)
+{
+    sendOne(s, hdl);
+    // loopsend(s, hdl);
+    // std::thread timerThread(loopsend, s, hdl);
+    // timerThread.join();
 }
 
 int main()

@@ -7,6 +7,9 @@
   </head>
   <body>
     <h1>WebSocket Example</h1>
+    <div id="messages"></div>
+    <input type="text" id="messageInput" placeholder="Type your message" />
+    <button onclick="sendMessage()">Send</button>
 
     <!-- <script src="websocket-example.js"></script> -->
 
@@ -16,17 +19,44 @@
 
       let sizeSum = 0;
       let lastTs = Date.now();
-      let cnt = 0;
+      let startTime;
+      let totalSize = 0;
+      let n = 0;
 
       function createOneWebsocket(socketName) {
+        // Create a WebSocket object
         const socket = new WebSocket(socketUrl);
+
+        // DOM elements
+        const messagesDiv = document.getElementById("messages");
+        const messageInput = document.getElementById("messageInput");
+
+        // Event listener for when the WebSocket connection is open
         socket.addEventListener("open", (event) => {
-          console.log("CONNECTED", event);
-          socket.send("WEB MESSAGE!!");
+          startTime = Date.now();
+          console.log("WebSocket connection opened:", event);
+          sendMessage(n);
+          n++;
         });
 
+        const updateSend = (interval = 10000, immediate = true) => {
+          if (immediate) {
+            sendMessage(n);
+            n++;
+          }
+          clearInterval(window.sendItv);
+          window.sendItv = setInterval(() => {
+            sendMessage(n);
+            n++;
+          }, interval);
+        };
+
+        // Event listener for receiving messages from the WebSocket server
         socket.addEventListener("message", (event) => {
+          console.log('--message: ');
           const message = event.data;
+          sendMessage(n);
+          n++;
           displayMessage(message);
         });
 
@@ -39,6 +69,14 @@
         socket.addEventListener("close", (event) => {
           console.log("WebSocket connection closed:", event);
         });
+
+        // Function to send a message to the WebSocket server
+        function sendMessage(msg = 1) {
+          console.log('sendMessage: ', msg);
+          const message = messageInput.value || msg;
+          socket.send(message);
+          messageInput.value = "";
+        }
 
         function blobToDataView(blob) {
           return new Promise((resolve, reject) => {
@@ -60,7 +98,6 @@
 
         // Function to display a message in the UI
         function displayMessage(data) {
-          console.log('displayMessage: ', data);
           const now = Date.now();
           const MB = 1 * 1024 * 1024;
           const size = data.size / MB;
@@ -69,12 +106,17 @@
             // 使用DataView读取64位有符号整数
             const bigInt = view.getBigInt64(0, true);
             const sendTs = Number(bigInt.toString());
-            const diff = now - sendTs;
-            console.log(`speed:`, cnt, diff, (size / diff) * 1000);
-            cnt++;
+            const diff = now - sendTs / 1000;
+
             sizeSum += size;
+            totalSize += size;
+            // console.log('size: ', size,sizeSum);
+            // console.log(
+            //   `BandWidth: ${
+            //     (size / diff) * 1000
+            //   }MB/s,time:${diff}, size:${size}MB`
+            // );
           });
-          cnt;
         }
       }
 
@@ -83,10 +125,17 @@
         const bw = (sizeSum / (now - lastTs)) * 1000;
         lastTs = now;
         sizeSum = 0;
-        console.log(`bandwidth `, bw);
+
+        const avg_bw = (totalSize / (now - startTime)) * 1000;
+        console.log(`avg: ${avg_bw}, bandwidth: ${bw}`);
       }, 1000);
 
+      for (let i = 0; i < 3; i++) {
+        // createOneWebsocket("socket" + i);
+      }
       createOneWebsocket("socket1");
+      // createOneWebsocket("socket2" );
+      // createOneWebsocket("socket5" );
     </script>
   </body>
 </html>

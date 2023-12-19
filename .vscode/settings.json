@@ -80,6 +80,8 @@
         "iterator": "cpp",
         "utility": "cpp",
         "filesystem": "cpp",
-        "queue": "cpp"
+        "queue": "cpp",
+        "thread": "cpp",
+        "future": "cpp"
     }
 }
