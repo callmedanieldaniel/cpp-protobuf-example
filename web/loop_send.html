@@ -15,7 +15,11 @@
 
     <script>
       // WebSocket connection URL
-      const socketUrl = "ws://localhost:9002";
+      // const socketUrl = "ws://172.25.12.157:9002";
+      const params = new URLSearchParams(location.search);
+      const server = params.get("server") || location.hostname;
+      const port = params.get("port") || 9002;
+      const socketUrl = `ws:/${server}:${port}`;
 
       let sizeSum = 0;
       let lastTs = Date.now();
@@ -53,7 +57,7 @@
 
         // Event listener for receiving messages from the WebSocket server
         socket.addEventListener("message", (event) => {
-          console.log('--message: ');
+          console.log("--message: ");
           const message = event.data;
           sendMessage(n);
           n++;
@@ -72,7 +76,7 @@
 
         // Function to send a message to the WebSocket server
         function sendMessage(msg = 1) {
-          console.log('sendMessage: ', msg);
+          console.log("sendMessage: ", msg);
           const message = messageInput.value || msg;
           socket.send(message);
           messageInput.value = "";
@@ -106,7 +110,7 @@
             // 使用DataView读取64位有符号整数
             const bigInt = view.getBigInt64(0, true);
             const sendTs = Number(bigInt.toString());
-            const diff = now - sendTs / 1000;
+            const diff = (now - sendTs) / 1000;
 
             sizeSum += size;
             totalSize += size;
