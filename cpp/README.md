@@ -21,5 +21,4 @@ g++ -std=c++11 -o websocket_server continious_send_server.cpp -lwebsocketpp -lpt
 protoc example.proto -o example.desc
 
 ## 更新 cpp 代码并打包
-rm -rf build/ && mkdir build && cd build && cmake .. && make && ./server
-
+cd cpp/socket/ && .. rm -rf build/ && mkdir build && cd build && cmake .. && make && ./server
